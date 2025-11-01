@@ -13,7 +13,8 @@ const FoundItemDetail = () => {
       try {
         const data = await foundItemsAPI.getById(id);
         setItem(data);
-      } catch (err) {
+      } catch (error) {
+        console.error(error);
         setError('Item not found');
       } finally {
         setLoading(false);

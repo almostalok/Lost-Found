@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { lostItemsAPI } from '../services/Api';
 
 const LostItemDetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -14,7 +13,8 @@ const LostItemDetail = () => {
       try {
         const data = await lostItemsAPI.getById(id);
         setItem(data);
-      } catch (err) {
+      } catch (error) {
+        console.error(error);
         setError('Item not found');
       } finally {
         setLoading(false);

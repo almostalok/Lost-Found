@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { authAPI } from '../services/Api';
 
@@ -17,11 +18,21 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is logged in on mount
   useEffect(() => {
-    const currentUser = authAPI.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-    }
-    setLoading(false);
+    let mounted = true;
+    const init = async () => {
+      try {
+        const currentUser = await authAPI.me();
+        if (mounted && currentUser) {
+          setUser(currentUser);
+        }
+      } catch (err) {
+        // ignore
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    init();
+    return () => { mounted = false };
   }, []);
 
   // Register function
@@ -61,8 +72,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Logout function
-  const logout = () => {
-    authAPI.logout();
+  const logout = async () => {
+    await authAPI.logout();
     setUser(null);
   };
 

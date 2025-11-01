@@ -72,3 +72,26 @@ export const authUser = async (req, res) => {
         throw new Error("Invalid email or password");
     }
 };
+
+export const logoutUser = async (req, res) => {
+    // Clear the token cookie by setting it to an empty value and expiring it
+    const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 0,
+    };
+
+    res.cookie('token', '', cookieOptions);
+    res.json({ message: 'Logged out' });
+};
+
+export const getCurrentUser = async (req, res) => {
+    // protect middleware should have already attached req.user
+    if (req.user) {
+        res.json(req.user);
+    } else {
+        res.status(401);
+        throw new Error('Not authenticated');
+    }
+};

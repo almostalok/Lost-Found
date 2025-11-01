@@ -74,15 +74,26 @@ export const authAPI = {
   },
 
   // Logout (clear local storage, cookie will be handled by server)
-  logout: () => {
+  logout: async () => {
+    try {
+      // Ask server to clear the httpOnly cookie
+      await api.post('/auth/logout');
+    } catch (err) {
+      // ignore server errors for logout
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   },
 
-  // Get current user from localStorage
-  getCurrentUser: () => {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+  // Get current user from server (prefers cookie) with fallback to localStorage
+  me: async () => {
+    try {
+      const response = await api.get('/auth/me');
+      return response.data;
+    } catch (err) {
+      const userStr = localStorage.getItem('user');
+      return userStr ? JSON.parse(userStr) : null;
+    }
   },
 };
 
