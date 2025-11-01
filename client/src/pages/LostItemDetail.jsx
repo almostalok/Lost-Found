@@ -8,6 +8,10 @@ const LostItemDetail = () => {
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [claims, setClaims] = useState([]);
+  const [showClaimForm, setShowClaimForm] = useState(false);
+  const [claimMessage, setClaimMessage] = useState('');
+  const [claimLoading, setClaimLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -16,6 +20,16 @@ const LostItemDetail = () => {
       try {
         const data = await lostItemsAPI.getById(id);
         setItem(data);
+        
+        // If owner, fetch claims
+        if (user && data.user && user._id === data.user._id) {
+          try {
+            const claimsData = await lostItemsAPI.getClaims(id);
+            setClaims(claimsData);
+          } catch (err) {
+            console.error('Failed to fetch claims:', err);
+          }
+        }
       } catch (error) {
         console.error(error);
         setError('Item not found');
@@ -27,7 +41,7 @@ const LostItemDetail = () => {
     if (id) {
       fetchItem();
     }
-  }, [id]);
+  }, [id, user]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -38,6 +52,40 @@ const LostItemDetail = () => {
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+
+  const handleClaim = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    setClaimLoading(true);
+    setError('');
+    try {
+      await lostItemsAPI.claim(id, claimMessage);
+      setShowClaimForm(false);
+      setClaimMessage('');
+      alert('Claim submitted successfully! The owner will review your request.');
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || 'Failed to submit claim');
+    } finally {
+      setClaimLoading(false);
+    }
+  };
+
+  const handleUpdateClaim = async (claimId, status) => {
+    try {
+      await lostItemsAPI.updateClaim(id, claimId, status);
+      // Refresh claims
+      const updatedClaims = await lostItemsAPI.getClaims(id);
+      setClaims(updatedClaims);
+      alert(`Claim ${status}!`);
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || 'Failed to update claim');
+    }
   };
 
   if (loading) {
@@ -148,6 +196,93 @@ const LostItemDetail = () => {
                 >
                   Delete Item
                 </button>
+              </div>
+            )}
+
+            {/* Claim button for non-owners */}
+            {user && item.user && user._id !== item.user._id && (
+              <div className="claim-section mt-4">
+                {!showClaimForm ? (
+                  <button 
+                    onClick={() => setShowClaimForm(true)}
+                    className="claim-btn bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    This is My Item - Request to Claim
+                  </button>
+                ) : (
+                  <div className="claim-form bg-gray-50 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold mb-2">Submit Claim Request</h3>
+                    <textarea
+                      value={claimMessage}
+                      onChange={(e) => setClaimMessage(e.target.value)}
+                      placeholder="Please provide details about why this item is yours..."
+                      rows="4"
+                      className="claim-textarea w-full p-2 border rounded"
+                    />
+                    <div className="claim-form-actions mt-2 flex space-x-2">
+                      <button 
+                        onClick={handleClaim}
+                        disabled={claimLoading || !claimMessage.trim()}
+                        className="submit-claim-btn bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+                      >
+                        {claimLoading ? 'Submitting...' : 'Submit Claim'}
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setShowClaimForm(false);
+                          setClaimMessage('');
+                        }}
+                        className="cancel-claim-btn bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Claims list for owner */}
+            {user && item.user && user._id === item.user._id && claims.length > 0 && (
+              <div className="claims-list-section mt-6 border-t pt-4">
+                <h3 className="text-xl font-semibold mb-4">Claims Received ({claims.length})</h3>
+                {claims.map((claim) => (
+                  <div key={claim._id} className="claim-item bg-white border rounded-lg p-4 mb-3">
+                    <div className="claim-header flex justify-between items-start mb-2">
+                      <strong className="text-lg">{claim.claimant?.name || 'Anonymous'}</strong>
+                      <span className={`claim-status px-3 py-1 rounded text-sm ${
+                        claim.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        claim.status === 'approved' ? 'bg-green-100 text-green-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {claim.status.charAt(0).toUpperCase() + claim.status.slice(1)}
+                      </span>
+                    </div>
+                    <p className="claim-message text-gray-700 mb-2">{claim.message}</p>
+                    <p className="claim-date text-sm text-gray-500 mb-1">
+                      {formatDate(claim.createdAt)}
+                    </p>
+                    <p className="claim-contact text-sm">
+                      <strong>Email:</strong> {claim.claimant?.email || 'N/A'}
+                    </p>
+                    {claim.status === 'pending' && (
+                      <div className="claim-actions mt-3 flex space-x-2">
+                        <button 
+                          onClick={() => handleUpdateClaim(claim._id, 'approved')}
+                          className="approve-btn bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                        >
+                          Approve
+                        </button>
+                        <button 
+                          onClick={() => handleUpdateClaim(claim._id, 'denied')}
+                          className="deny-btn bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                        >
+                          Deny
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </div>

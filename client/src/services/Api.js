@@ -152,6 +152,24 @@ export const lostItemsAPI = {
     const response = await api.delete(`/lost/${id}`);
     return response.data;
   },
+
+  // Claim a lost item (user found it)
+  claim: async (id, message) => {
+    const response = await api.post(`/lost/${id}/claim`, { message });
+    return response.data;
+  },
+
+  // Get claims for a lost item (owner only)
+  getClaims: async (id) => {
+    const response = await api.get(`/lost/${id}/claims`);
+    return response.data;
+  },
+
+  // Update claim status (owner only)
+  updateClaim: async (id, claimId, status) => {
+    const response = await api.put(`/lost/${id}/claims/${claimId}`, { status });
+    return response.data;
+  },
 };
 
 // Found Items API
@@ -207,6 +225,24 @@ export const foundItemsAPI = {
   // Delete found item (owner only)
   delete: async (id) => {
     const response = await api.delete(`/found/${id}`);
+    return response.data;
+  },
+
+  // Claim a found item (user thinks it's theirs)
+  claim: async (id, message) => {
+    const response = await api.post(`/found/${id}/claim`, { message });
+    return response.data;
+  },
+
+  // Get claims for a found item (owner only)
+  getClaims: async (id) => {
+    const response = await api.get(`/found/${id}/claims`);
+    return response.data;
+  },
+
+  // Update claim status (owner only)
+  updateClaim: async (id, claimId, status) => {
+    const response = await api.put(`/found/${id}/claims/${claimId}`, { status });
     return response.data;
   },
 };
