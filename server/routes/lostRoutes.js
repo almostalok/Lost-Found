@@ -1,5 +1,5 @@
 import express from 'express';
-import { addLostItem,getLostItemById,getLostItems } from "../controllers/lostController.js";
+import { addLostItem, getLostItemById, getLostItems, updateLostItem, deleteLostItem } from "../controllers/lostController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import upload from '../utils/upload.js';
 

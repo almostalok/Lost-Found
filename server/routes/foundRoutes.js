@@ -1,6 +1,6 @@
 // routes/foundRoutes.js
 import express from "express";
-import { addFoundItem, getFoundItems, getFoundItemsById } from "../controllers/foundController.js";
+import { addFoundItem, getFoundItems, getFoundItemsById, updateFoundItem, deleteFoundItem } from "../controllers/foundController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import upload from "../utils/upload.js";
 
