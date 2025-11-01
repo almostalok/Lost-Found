@@ -20,8 +20,18 @@ const app=express();
 
 //middlewares
 // Allow credentials so browsers accept httpOnly cookies from the API
+// Allow CORS from the client. In development we default to Vite's port 5174.
+const clientOrigin = process.env.CLIENT_URL || 'http://localhost:5174';
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: (origin, cb) => {
+        // allow requests with no origin like mobile apps or curl
+        if (!origin) return cb(null, true);
+        // allow the configured client origin
+        if (origin === clientOrigin) return cb(null, true);
+        // allow localhost dev origins (ports 3000/5173/5174)
+        if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return cb(null, true);
+        return cb(new Error('Not allowed by CORS'), false);
+    },
     credentials: true,
 }));
 app.use(express.json());
