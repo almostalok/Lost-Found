@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { lostItemsAPI } from '../services/Api';
+import { useAuth } from '../context/AuthContext';
 
 const LostItemDetail = () => {
   const { id } = useParams();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -126,6 +129,25 @@ const LostItemDetail = () => {
               <div className="border-t pt-4">
                 <p className="text-sm font-medium text-gray-500">Reported by</p>
                 <p className="text-gray-900">{item.user.name || item.user.email}</p>
+              </div>
+            )}
+            {user && item.user && user._id === item.user._id && (
+              <div className="mt-4 flex items-center space-x-2">
+                <button
+                  onClick={async () => {
+                    if (!confirm('Delete this lost item? This cannot be undone.')) return;
+                    try {
+                      await lostItemsAPI.delete(item._id);
+                      navigate('/lost');
+                    } catch (err) {
+                      console.error(err);
+                      setError(err.response?.data?.message || 'Failed to delete item');
+                    }
+                  }}
+                  className="btn btn-danger"
+                >
+                  Delete Item
+                </button>
               </div>
             )}
           </div>

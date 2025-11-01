@@ -131,6 +131,27 @@ export const lostItemsAPI = {
     });
     return response.data;
   },
+  // Update lost item (owner only)
+  update: async (id, itemData) => {
+    const formData = new FormData();
+    if (itemData.title !== undefined) formData.append('title', itemData.title);
+    if (itemData.description !== undefined) formData.append('description', itemData.description);
+    if (itemData.category !== undefined) formData.append('category', itemData.category);
+    if (itemData.location !== undefined) formData.append('location', itemData.location);
+    if (itemData.dateLost !== undefined) formData.append('dateLost', itemData.dateLost);
+    if (itemData.image) formData.append('image', itemData.image);
+
+    const response = await api.put(`/lost/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  // Delete lost item (owner only)
+  delete: async (id) => {
+    const response = await api.delete(`/lost/${id}`);
+    return response.data;
+  },
 };
 
 // Found Items API
@@ -165,6 +186,27 @@ export const foundItemsAPI = {
         'Content-Type': 'multipart/form-data',
       },
     });
+    return response.data;
+  },
+  // Update found item (owner only)
+  update: async (id, itemData) => {
+    const formData = new FormData();
+    if (itemData.title !== undefined) formData.append('title', itemData.title);
+    if (itemData.description !== undefined) formData.append('description', itemData.description);
+    if (itemData.category !== undefined) formData.append('category', itemData.category);
+    if (itemData.location !== undefined) formData.append('location', itemData.location);
+    if (itemData.dateFound !== undefined) formData.append('dateFound', itemData.dateFound);
+    if (itemData.image) formData.append('image', itemData.image);
+
+    const response = await api.put(`/found/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  // Delete found item (owner only)
+  delete: async (id) => {
+    const response = await api.delete(`/found/${id}`);
     return response.data;
   },
 };
