@@ -7,8 +7,10 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
-    navigate('/');
+    (async () => {
+      await logout();
+      navigate('/');
+    })();
   };
 
   return (

@@ -78,7 +78,7 @@ export const authAPI = {
     try {
       // Ask server to clear the httpOnly cookie
       await api.post('/auth/logout');
-    } catch (err) {
+    } catch {
       // ignore server errors for logout
     }
     localStorage.removeItem('token');
@@ -90,7 +90,7 @@ export const authAPI = {
     try {
       const response = await api.get('/auth/me');
       return response.data;
-    } catch (err) {
+    } catch {
       const userStr = localStorage.getItem('user');
       return userStr ? JSON.parse(userStr) : null;
     }

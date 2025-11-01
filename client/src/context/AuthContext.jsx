@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
         if (mounted && currentUser) {
           setUser(currentUser);
         }
-      } catch (err) {
+      } catch {
         // ignore
       } finally {
         if (mounted) setLoading(false);
