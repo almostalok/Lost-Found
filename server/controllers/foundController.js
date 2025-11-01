@@ -39,3 +39,46 @@ export const getFoundItemsById=async (req,res) => {
   res.json(item);
     
 }
+
+export const updateFoundItem = async (req, res) => {
+  const item = await FoundItem.findById(req.params.id);
+  if (!item) {
+    res.status(404);
+    throw new Error('Found item not found');
+  }
+
+  // Only owner can update
+  if (!req.user || item.user.toString() !== req.user._id.toString()) {
+    res.status(403);
+    throw new Error('Not authorized to update this item');
+  }
+
+  const { title, description, category, location, dateFound } = req.body;
+  if (title !== undefined) item.title = title;
+  if (description !== undefined) item.description = description;
+  if (category !== undefined) item.category = category;
+  if (location !== undefined) item.location = location;
+  if (dateFound !== undefined) item.dateFound = dateFound;
+  if (req.file && req.file.path) item.image = req.file.path;
+
+  await item.save();
+
+  const matches = await matchItems(null, item);
+  res.json({ item, matches });
+};
+
+export const deleteFoundItem = async (req, res) => {
+  const item = await FoundItem.findById(req.params.id);
+  if (!item) {
+    res.status(404);
+    throw new Error('Found item not found');
+  }
+
+  if (!req.user || item.user.toString() !== req.user._id.toString()) {
+    res.status(403);
+    throw new Error('Not authorized to delete this item');
+  }
+
+  await item.remove();
+  res.json({ message: 'Found item removed' });
+};

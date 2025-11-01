@@ -6,6 +6,6 @@ import upload from '../utils/upload.js';
 const router=express.Router();
 
 router.route('/').get(getLostItems).post(protect,upload.single("image"),addLostItem);
-router.route("/:id").get(getLostItemById);
+router.route("/:id").get(getLostItemById).put(protect, upload.single("image"), updateLostItem).delete(protect, deleteLostItem);
 
 export default router;
