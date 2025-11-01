@@ -6,70 +6,83 @@
 
 lost&found/
 │
-├── server/
-│   ├── config/
-│   │   └── db.js
-│   ├── controllers/
-│   │   ├── authController.js
-│   │   ├── lostController.js
-│       └── foundController.js
-│   ├── models/
-│   │   ├── User.js
-│   │   ├── LostItem.js
-│   │   └── FoundItem.js
-│   ├── middleware/
-│   │   ├── authMiddleware.js
-│   │   └── errorMiddleware.js
-│   ├── routes/
-│   │   ├── authRoutes.js
-│   │   ├── lostRoutes.js
-│   │   └── foundRoutes.js
-│   ├── utils/
-│   │   ├── matchAlgorithm.js
-│   │   └── upload.js
-│   ├── server.js
-│   └── package.json
-│
-├── client/
-│   ├── public/
-│   ├── src/
-│   │   ├── assets/
-│   │   ├── components/
-│   │   │   ├── Navbar.jsx
-│   │   │   ├── Footer.jsx
-│   │   │   └── ItemCard.jsx
-│   │   ├── pages/
-│   │   │   ├── Home.jsx
-│   │   │   ├── ReportLost.jsx
-│   │   │   ├── ReportFound.jsx
-│   │   │   ├── Search.jsx
-│   │   │   ├── Login.jsx
-│   │   │   ├── Signup.jsx
-│   │   │   └── Dashboard.jsx
-│   │   ├── context/
-│   │   │   └── AuthContext.jsx
-│   │   ├── services/
-│   │   │   ├── api.js
-│   │   ├── App.jsx
-│   │   ├── index.js
-│   │   └── styles/
-│   │       └── main.css
-│   └── package.json
-│
-├── .env
-├── README.md
-└── package.json
+# Lost & Found
 
+This repository contains a full-stack Lost & Found application with a Node/Express API (server) and a React + Vite frontend (client).
 
+The project helps users report lost or found items, upload images (Cloudinary), and match items using a simple matching algorithm.
 
-    ​‌‍‌⁡⁣⁣⁢⁡⁢⁣⁡⁢⁣⁣​‌‌‍--->𝗣𝗿𝗼𝗰𝗲𝘀𝘀:-​⁡
+## Features
+- User registration and authentication (JWT + httpOnly cookie)
+- Report lost and found items with images
+- Cloudinary integration for uploads
+- Basic matching algorithm to suggest related items
 
-    1.Configures (db.js) in config folder for mongodb connection.
+## Tech stack
+- Server: Node.js, Express, MongoDB (Mongoose), Cloudinary
+- Client: React, Vite, React Router
+- Auth: JSON Web Tokens (JWT)
 
-    2.Initialized server.js with all dependencies and error handlers.
+## Repository layout
 
-    3.Created error handler middleware.
+- `server/` — Express API, DB config, controllers, routes, and utilities
+- `client/` — React app (Vite)
 
-    4.Build all the models for db.
+## Quick start
 
-    
+Prerequisites:
+- Node.js (16+ recommended)
+- npm or yarn
+
+1) Server
+
+```bash
+cd server
+cp .env.example .env      # copy and populate environment variables
+npm install
+npm run dev               # starts server with nodemon
+```
+
+2) Client
+
+```bash
+cd client
+npm install
+npm run dev               # starts Vite dev server
+```
+
+Open the client at the URL printed by Vite (usually http://localhost:5173) and the API on the server port (default: 5000).
+
+## Environment variables
+Populate `/server/.env` (copy from `/server/.env.example`) with real values:
+
+- `PORT` — server port
+- `CLIENT_URL` — allowed client origin for CORS
+- `MONGODB_URI` — MongoDB connection string
+- `JWT_SECRET` — secret for signing JWTs
+- `NODE_ENV` — `development` or `production`
+- `CLOUDINARY_*` — cloud name, api key, api secret for image uploads
+
+## Useful npm scripts
+
+Server (`/server/package.json`):
+- `npm run dev` — start server with nodemon
+- `npm start` — production start
+
+Client (`/client/package.json`):
+- `npm run dev` — start Vite dev server
+
+## Contributing
+- Create an issue for major changes or bugs.
+- For fixes/features, open a pull request with a clear description and related issue.
+
+## License
+This repository does not include a license file. Add a `LICENSE` if you plan to publish this project.
+
+---
+
+If you want, I can also:
+- add a top-level `README.md` badge for build/tests,
+- generate a `CONTRIBUTING.md`, or
+- add a short `scripts` section explaining common workflows.
+
