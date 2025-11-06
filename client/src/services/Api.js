@@ -95,6 +95,26 @@ export const authAPI = {
       return userStr ? JSON.parse(userStr) : null;
     }
   },
+  // Request Aadhar verification (file upload + number)
+  requestAadhar: async (form) => {
+    // form should be a FormData instance with fields: aadharNumber, aadhar (file)
+    const response = await api.post('/auth/me/aadhar', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  // Admin: list pending aadhar requests
+  getAadharRequests: async () => {
+    const response = await api.get('/auth/aadhar/requests');
+    return response.data;
+  },
+
+  // Admin: update a user's aadhar status
+  updateAadharStatus: async (userId, status, reason) => {
+    const response = await api.put(`/auth/aadhar/${userId}`, { status, reason });
+    return response.data;
+  },
 };
 
 // Lost Items API
@@ -248,3 +268,18 @@ export const foundItemsAPI = {
 };
 
 export default api;
+
+// Chat API
+export const chatAPI = {
+  // Get or create chat for an item
+  getChat: async (itemType, itemId) => {
+    const response = await api.get(`/chats/${itemType}/${itemId}`);
+    return response.data;
+  },
+
+  // Send message for an item
+  sendMessage: async (itemType, itemId, text) => {
+    const response = await api.post(`/chats/${itemType}/${itemId}/messages`, { text });
+    return response.data;
+  },
+};

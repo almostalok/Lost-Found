@@ -95,3 +95,66 @@ export const getCurrentUser = async (req, res) => {
         throw new Error('Not authenticated');
     }
 };
+
+// Request Aadhar verification: accepts aadharNumber and an uploaded file (req.file.path)
+// For now we auto-verify when a number and/or document is provided (no external verification)
+export const requestAadharVerification = async (req, res) => {
+    const userId = req.user?._id;
+    if (!userId) {
+        res.status(401);
+        throw new Error('Not authenticated');
+    }
+
+    const { aadharNumber } = req.body;
+    const aadharDocument = req.file ? req.file.path : null;
+
+    if (!aadharNumber && !aadharDocument) {
+        res.status(400);
+        throw new Error('Provide aadharNumber or upload an aadhar document');
+    }
+
+    const update = {
+        aadharNumber: aadharNumber || undefined,
+        aadharDocument: aadharDocument || undefined,
+        // Auto-verify immediately when user provides both or either
+        aadharStatus: 'verified',
+        aadharRequestedAt: new Date(),
+        aadharVerifiedAt: new Date(),
+        aadharRejectedReason: undefined,
+    };
+
+    const updatedUser = await User.findByIdAndUpdate(userId, update, { new: true }).select('-password');
+
+    res.status(200).json({ message: 'Aadhar verified', user: updatedUser });
+};
+
+// Admin: list users with pending aadhar requests
+export const listPendingAadharRequests = async (req, res) => {
+    const users = await User.find({ aadharStatus: 'pending' }).select('-password');
+    res.json(users);
+};
+
+// Admin: verify or reject a user's aadhar
+export const updateAadharStatus = async (req, res) => {
+    const { id } = req.params;
+    const { status, reason } = req.body; // status = 'verified' | 'rejected'
+
+    if (!['verified', 'rejected'].includes(status)) {
+        res.status(400);
+        throw new Error('Invalid status. Use verified or rejected');
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+        res.status(404);
+        throw new Error('User not found');
+    }
+
+    user.aadharStatus = status;
+    user.aadharRejectedReason = status === 'rejected' ? (reason || 'Rejected by admin') : undefined;
+    user.aadharVerifiedAt = status === 'verified' ? new Date() : undefined;
+
+    await user.save();
+
+    res.json({ message: `Aadhar ${status}`, user: user.toObject() });
+};

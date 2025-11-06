@@ -6,6 +6,14 @@ const userSchema = new mongoose.Schema(
         name: { type: String, required: true },
         email: { type: String, required: true, unique: true },
         password: { type: String, required: true },
+        // Aadhar verification fields
+        aadharNumber: { type: String },
+        aadharDocument: { type: String }, // URL to uploaded Aadhar image/pdf
+        aadharStatus: { type: String, enum: ['unverified', 'pending', 'verified', 'rejected'], default: 'unverified' },
+        aadharRequestedAt: { type: Date },
+        aadharVerifiedAt: { type: Date },
+        aadharRejectedReason: { type: String },
+        isAdmin: { type: Boolean, default: false },
     },
     { timestamps: true }
 );

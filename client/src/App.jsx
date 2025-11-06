@@ -5,6 +5,7 @@ import Signup from "./pages/Signup";
 import Found from "./pages/Found";
 import LostItemDetail from "./pages/LostItemDetail";
 import FoundItemDetail from "./pages/FoundItemDetail";
+import AadharVerification from "./pages/AadharVerification";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -24,6 +25,7 @@ const App = () => {
           <Route path="/found/:id" element={<FoundItemDetail />} />
           <Route path="/lost" element={<Lost />} />
           <Route path="/lost/:id" element={<LostItemDetail />} />
+          <Route path="/verify-aadhar" element={<AadharVerification />} />
         </Routes>
 
         <Footer />

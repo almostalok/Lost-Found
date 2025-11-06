@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { lostItemsAPI } from '../services/Api';
+import { lostItemsAPI, chatAPI } from '../services/Api';
 import { useAuth } from '../context/AuthContext';
+import { initSocket, getSocket } from '../services/socket';
 
 const LostItemDetail = () => {
   const { id } = useParams();
@@ -9,11 +10,15 @@ const LostItemDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [claims, setClaims] = useState([]);
+  const [chat, setChat] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
   const [showClaimForm, setShowClaimForm] = useState(false);
   const [claimMessage, setClaimMessage] = useState('');
   const [claimLoading, setClaimLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -30,6 +35,20 @@ const LostItemDetail = () => {
             console.error('Failed to fetch claims:', err);
           }
         }
+          // fetch chat if owner or claimant and connect socket
+          try {
+            const c = await chatAPI.getChat('lost', id);
+            setChat(c);
+            setMessages(c.messages || []);
+
+            const s = initSocket();
+            s.emit('join', { itemType: 'lost', itemId: id });
+            s.on('message', (msg) => {
+              setMessages((prev) => [...prev, msg]);
+            });
+          } catch (err) {
+            // ignore
+          }
       } catch (error) {
         console.error(error);
         setError('Item not found');
@@ -41,6 +60,13 @@ const LostItemDetail = () => {
     if (id) {
       fetchItem();
     }
+
+    return () => {
+      const s = getSocket();
+      if (s) {
+        s.off('message');
+      }
+    };
   }, [id, user]);
 
   const formatDate = (dateString) => {
@@ -67,6 +93,18 @@ const LostItemDetail = () => {
       setShowClaimForm(false);
       setClaimMessage('');
       alert('Claim submitted successfully! The owner will review your request.');
+      try {
+        const c = await chatAPI.getChat('lost', id);
+        setChat(c);
+        setMessages(c.messages || []);
+        const s = initSocket();
+        s.emit('join', { itemType: 'lost', itemId: id });
+        s.on('message', (msg) => {
+          setMessages((prev) => [...prev, msg]);
+        });
+      } catch (err) {
+        // ignore
+      }
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || 'Failed to submit claim');
@@ -85,6 +123,23 @@ const LostItemDetail = () => {
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || 'Failed to update claim');
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return;
+    try {
+      const s = getSocket() || initSocket();
+      s.emit('sendMessage', { itemType: 'lost', itemId: id, text: newMessage.trim() }, (ack) => {
+        if (ack && ack.status === 'ok') {
+          setNewMessage('');
+        } else {
+          setError(ack?.message || 'Failed to send');
+        }
+      });
+    } catch (err) {
+      console.error('Failed to send message', err);
+      setError(err.response?.data?.message || 'Failed to send message');
     }
   };
 
@@ -283,6 +338,31 @@ const LostItemDetail = () => {
                     )}
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Chat section (owner/participant) */}
+            {(user && (
+              (item.user && String(user._id) === String(item.user._id)) ||
+              (chat && chat.participants && chat.participants.some(p => String(p._id) === String(user._id))) ||
+              (claims && claims.some(c => String(c.claimant?._id || c.claimant) === String(user._id)))
+            )) && (
+              <div className="mt-6 border-t pt-4">
+                <h3 className="text-lg font-semibold mb-3">Messages</h3>
+                <div className="space-y-3 max-h-64 overflow-auto mb-3">
+                  {messages.length === 0 && <p className="text-sm text-gray-500">No messages yet. Start the conversation.</p>}
+                  {messages.map((m) => (
+                    <div key={m._id || m.createdAt} className={`p-3 rounded ${m.sender?._id === user._id ? 'bg-indigo-100 self-end' : 'bg-gray-100'}`}>
+                      <div className="text-sm text-gray-700"><strong>{m.sender?.name || m.sender?.email}</strong></div>
+                      <div className="mt-1">{m.text}</div>
+                      <div className="text-xs text-gray-400 mt-1">{new Date(m.createdAt).toLocaleString()}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex space-x-2">
+                  <input value={newMessage} onChange={(e)=>setNewMessage(e.target.value)} placeholder="Type a message..." className="flex-1 border p-2 rounded" />
+                  <button onClick={handleSendMessage} className="btn btn-primary">Send</button>
+                </div>
               </div>
             )}
           </div>

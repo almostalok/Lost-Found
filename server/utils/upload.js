@@ -20,7 +20,8 @@ dotenv.config();
         cloudinary,
         params:{
             folder:"lost-found-items",
-            allowed_formats:['jpg','jpeg','png'],
+            // allow PDFs for document uploads (aadhar)
+            allowed_formats:['jpg','jpeg','png','pdf'],
 
         },
     })

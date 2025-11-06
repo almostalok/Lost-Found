@@ -42,3 +42,16 @@ export const protect = async (req, res, next) => {
         throw new Error("Not authorized, token failed");
     }
 };
+
+// Middleware to require admin privileges
+export const requireAdmin = (req, res, next) => {
+    if (!req.user) {
+        res.status(401);
+        throw new Error('Not authenticated');
+    }
+    if (!req.user.isAdmin) {
+        res.status(403);
+        throw new Error('Admin privileges required');
+    }
+    next();
+};
